@@ -1,0 +1,117 @@
+/* In this project I show some relational database skill and knowledge with a database
+that has the suicides cases from India in the last years. 
+Data source: Kaggle. */
+
+-- Looking at the data in the main table.
+
+SELECT *
+FROM public.suicides_india;
+
+--Creating tables. 
+
+CREATE TABLE causes (
+type_c character varying(100),
+type_t character varying(100),
+id serial
+);
+
+CREATE TABLE people (
+gender character varying(100),
+age_group character varying(50),
+total integer
+);
+
+CREATE TABLE location_year (
+state character varying(100),
+year numeric,
+id serial    
+);
+
+-- Populating tables with data from the main table.
+
+INSERT INTO causes
+SELECT type_code, type
+FROM public.suicides_india;
+
+INSERT INTO people
+SELECT gender, age_group, total
+FROM public.suicides_india;
+
+INSERT INTO location_year
+SELECT state, year
+FROM public.suicides_india;
+
+-- Deleting main table.
+
+DROP TABLE suicides_india;
+
+-- Changing a column name.
+
+ALTER TABLE location_year
+RENAME COLUMN id TO id_1;
+
+-- Setting not null values in a column.
+
+ALTER TABLE location_year
+ALTER COLUMN year SET NOT NULL;
+
+-- Setting unique values constraint in a column.
+
+ALTER TABLE location_year
+ADD CONSTRAINT id_unique UNIQUE(id_1);
+
+-- Creating a primary key column with two columns.
+
+SELECT *
+FROM location_year;
+
+-- Countig the distinct values of the 2 columns, it should be the same number of the rows number in the table. 
+-- It means that the combination of the 2 columns is unique and can be use to create a Primary key.
+
+SELECT COUNT(DISTINCT(year, id_1))
+FROM location_year;
+
+ALTER TABLE location_year
+ADD COLUMN r_id VARCHAR(250);
+
+UPDATE location_year
+SET r_id = CONCAT(year, '-', id_1);
+
+ALTER TABLE location_year
+ADD CONSTRAINT pk2 PRIMARY KEY (r_id);
+
+-- Foreign key.
+
+SELECT * 
+FROM people;
+
+ALTER TABLE people
+ADD COLUMN fk_id VARCHAR(250);
+
+ALTER TABLE people
+ADD CONSTRAINT foreign_k FOREIGN KEY (fk_id) 
+REFERENCES location_year (r_id);
+
+UPDATE people
+SET fk_id = location_year.r_id
+FROM location_year;
+
+-- Referential integrity.
+-- Just in case we forget the foreign key constraint name.
+
+SELECT constraint_name,table_name, constraint_type
+FROM information_schema.table_constraints
+WHERE constraint_type = 'FOREIGN KEY';
+
+ALTER TABLE people
+DROP CONSTRAINT foreign_k;
+
+-- Changing the referential integrity.
+
+ALTER TABLE people
+ADD CONSTRAINT foreign_k FOREIGN KEY (fk_id) 
+REFERENCES location_year (r_id) ON DELETE CASCADE;
+
+/* Now the data is ready for analysis...
+Tank You... */
+
